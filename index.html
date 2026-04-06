@@ -91,16 +91,17 @@ function renderTable() {
   tbody.innerHTML = "";
 
   products.forEach((p, index) => {
-    let row = `
-      <tr>
-        <td>${index + 1}</td>
-        <td>${p.name}</td>
-        <td>${p.category || ""}</td>
-        <td>${p.price}</td>
-        <td>${p.quantity}</td>
-      </tr>
+    let row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${p.name}</td>
+      <td>${p.category || ""}</td>
+      <td>${p.price}</td>
+      <td>${p.quantity}</td>
     `;
-    tbody.innerHTML += row;
+
+    tbody.appendChild(row);
   });
 }
 
@@ -115,61 +116,62 @@ xhr.onreadystatechange = function() {
 xhr.open("GET", "products.json");
 xhr.send();
 
-// SORT
-document.getElementById("sort-name").onclick = function() {
+// SORT (FIX: dùng addEventListener)
+const nameHeader = document.getElementById("sort-name");
+
+nameHeader.addEventListener("click", function() {
   products.sort((a, b) => {
-    if (sortAsc) {
-      return a.name.localeCompare(b.name);
-    } else {
-      return b.name.localeCompare(a.name);
-    }
+    return sortAsc
+      ? a.name.localeCompare(b.name)
+      : b.name.localeCompare(a.name);
   });
 
   sortAsc = !sortAsc;
 
-  this.innerText = "Tên sản phẩm " + (sortAsc ? "▲" : "▼");
+  this.textContent = "Tên sản phẩm " + (sortAsc ? "▲" : "▼");
 
   renderTable();
-};
+});
 
 // ADD PRODUCT
-document.getElementById("btn-add").onclick = function() {
+function addProduct() {
   let name = document.getElementById("input-name").value.trim();
   let category = document.getElementById("input-category").value.trim();
   let price = parseFloat(document.getElementById("input-price").value);
   let quantity = parseInt(document.getElementById("input-quantity").value);
 
-  // Validation
-  if (name.length < 3) {
-    alert("Tên phải >= 3 ký tự");
-    return;
-  }
-  if (isNaN(price) || price <= 0) {
-    alert("Giá phải > 0");
-    return;
-  }
-  if (isNaN(quantity) || quantity < 1) {
-    alert("Số lượng >= 1");
-    return;
-  }
+  if (name.length < 3) return;
+  if (isNaN(price) || price <= 0) return;
+  if (isNaN(quantity) || quantity < 1) return;
 
   let newProduct = {
     id: Date.now(),
-    name: name,
-    category: category,
-    price: price,
-    quantity: quantity
+    name,
+    category,
+    price,
+    quantity
   };
 
   products.push(newProduct);
   renderTable();
 
-  // Reset
+  // reset
   document.getElementById("input-name").value = "";
   document.getElementById("input-category").value = "";
   document.getElementById("input-price").value = "";
   document.getElementById("input-quantity").value = "";
-};
+}
+
+// FIX: handle cả click + submit
+document.getElementById("btn-add").addEventListener("click", addProduct);
+
+const form = document.querySelector("form");
+if (form) {
+  form.addEventListener("submit", function(e) {
+    e.preventDefault();
+    addProduct();
+  });
+}
 </script>
 
 </body>
